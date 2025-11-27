@@ -1,4 +1,4 @@
-<svg width="29.632mm" height="7.4083mm" version="1.1" viewBox="0 0 29.632 7.4083"
+<svg width="{{ .Width }}" height="{{ .Height }}" version="1.1" viewBox="0 0 29.632 7.4083"
   xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
   <defs>
     <clipPath id="clipPath23699">

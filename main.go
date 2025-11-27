@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/base64"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -30,6 +31,8 @@ type Playing struct {
 	Title   string
 	Status  string
 	Animate bool
+	Width   string
+	Height  string
 }
 
 type EmbedCode struct {
@@ -145,12 +148,26 @@ func main() {
 		}
 
 		header := c.Response().Header()
-		header.Set("Cache-Control", "max-age="+strconv.Itoa(60*3))
+		header.Set("Cache-Control", "no-cache, no-store, must-revalidate, max-age=0")
+		header.Set("CDN-Cache-Control", "no-cache")
+		header.Set("Cloudflare-CDN-Cache-Control", "no-cache")
 
 		animate := false
 		if utf8.RuneCountInString(track.Name) > 10 {
 			animate = true
 		}
+
+		// Get scale from query parameter (default: 1.0)
+		scale := 1.0
+		if scaleParam := c.QueryParam("scale"); scaleParam != "" {
+			if s, err := strconv.ParseFloat(scaleParam, 64); err == nil && s > 0 && s <= 10 {
+				scale = s
+			}
+		}
+
+		// Base dimensions in mm
+		baseWidth := 29.632
+		baseHeight := 7.4083
 
 		return c.Render(http.StatusOK, "playing.svg", Playing{
 			Url:     track.Url,
@@ -158,6 +175,8 @@ func main() {
 			Title:   track.Name,
 			Status:  track.Artist.Name,
 			Animate: animate,
+			Width:   fmt.Sprintf("%.3fmm", baseWidth*scale),
+			Height:  fmt.Sprintf("%.3fmm", baseHeight*scale),
 		})
 	})
 
