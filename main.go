@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"strconv"
 	"unicode/utf8"
 
 	"text/template"
@@ -145,7 +144,9 @@ func main() {
 		}
 
 		header := c.Response().Header()
-		header.Set("Cache-Control", "max-age="+strconv.Itoa(60*3))
+		header.Set("Cache-Control", "no-cache, no-store, must-revalidate, max-age=0")
+		header.Set("CDN-Cache-Control", "no-cache")
+		header.Set("Cloudflare-CDN-Cache-Control", "no-cache")
 
 		animate := false
 		if utf8.RuneCountInString(track.Name) > 10 {
