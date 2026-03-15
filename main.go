@@ -135,8 +135,10 @@ func main() {
 
 		track := res.Tracks[0]
 
-		url := track.Images[0].Url
-
+		var url string
+		if len(track.Images) > 0 {
+			url = track.Images[0].Url
+		}
 		for _, i := range track.Images {
 			if i.Size == imageSize {
 				url = i.Url
@@ -144,9 +146,12 @@ func main() {
 			}
 		}
 
-		icon, err := ToDataUrl(url)
-		if err != nil {
-			return err
+		var icon string
+		if url != "" {
+			icon, err = ToDataUrl(url)
+			if err != nil {
+				return err
+			}
 		}
 
 		header := c.Response().Header()
