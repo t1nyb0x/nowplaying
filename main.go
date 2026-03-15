@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
+	"math"
 	"net/http"
 	"net/url"
 	"os"
@@ -26,13 +27,14 @@ func (t *Template) Render(w io.Writer, name string, data interface{}, c echo.Con
 }
 
 type Playing struct {
-	Url     string
-	Icon    string
-	Title   string
-	Status  string
-	Animate bool
-	Width   string
-	Height  string
+	Url           string
+	Icon          string
+	Title         string
+	Status        string
+	Animate       bool
+	Width         string
+	Height        string
+	ScrollPercent float64
 }
 
 type EmbedCode struct {
@@ -152,10 +154,17 @@ func main() {
 		header.Set("CDN-Cache-Control", "no-cache")
 		header.Set("Cloudflare-CDN-Cache-Control", "no-cache")
 
-		animate := false
-		if utf8.RuneCountInString(track.Name) > 10 {
-			animate = true
-		}
+		const (
+			fontSize       = 2.1607
+			charWidthRatio = 0.60
+			containerWidth = 22.225
+			viewportWidth  = 29.632
+		)
+		runeCount := utf8.RuneCountInString(track.Name)
+		estTextWidth := float64(runeCount) * fontSize * charWidthRatio
+		overflow := estTextWidth - containerWidth
+		animate := overflow > 0
+		scrollPercent := math.Max(0, overflow) / viewportWidth * 100
 
 		// Get scale from query parameter (default: 1.0)
 		scale := 1.0
@@ -170,13 +179,14 @@ func main() {
 		baseHeight := 7.4083
 
 		return c.Render(http.StatusOK, "playing.svg", Playing{
-			Url:     track.Url,
-			Icon:    icon,
-			Title:   track.Name,
-			Status:  track.Artist.Name,
-			Animate: animate,
-			Width:   fmt.Sprintf("%.3fmm", baseWidth*scale),
-			Height:  fmt.Sprintf("%.3fmm", baseHeight*scale),
+			Url:           track.Url,
+			Icon:          icon,
+			Title:         track.Name,
+			Status:        track.Artist.Name,
+			Animate:       animate,
+			Width:         fmt.Sprintf("%.3fmm", baseWidth*scale),
+			Height:        fmt.Sprintf("%.3fmm", baseHeight*scale),
+			ScrollPercent: scrollPercent,
 		})
 	})
 
